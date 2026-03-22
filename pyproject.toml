@@ -1,0 +1,20 @@
+[project]
+name = "projetopoo2"
+version = "0.1.0"
+description = "Simulador de Fluidos"
+authors = [
+    {name = "Zuchi", email = "zuchii.victor@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame>=2.6.1",
+    "numpy>=2.4.3"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
