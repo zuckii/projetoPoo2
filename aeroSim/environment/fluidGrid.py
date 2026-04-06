@@ -1,5 +1,5 @@
 import numpy as np
-from aeroSim.config import physics_config as physConfig
+from aeroSim.config import physicsConfig as physConfig
 
 class FluidGrid:
     def __init__(self, resolution):

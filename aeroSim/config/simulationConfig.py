@@ -1,0 +1,2 @@
+GRID_RES = 100
+FPS_LIMIT = 60
