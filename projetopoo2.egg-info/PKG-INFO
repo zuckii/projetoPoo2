@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: projetopoo2
+Version: 0.1.0
+Summary: Simulador de Fluidos
+Author-email: Zuchi <zuchii.victor@gmail.com>
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: pygame>=2.6.1
+Requires-Dist: numpy>=2.4.3
+Requires-Dist: scipy<2.0.0,>=1.17.1
+Requires-Dist: pillow<13.0.0,>=12.2.0
+
+# projetoPoo2
