@@ -5,6 +5,7 @@ from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.wedge import Wedge
 from aeroSim.entities.roof import Roof
 from aeroSim.entities.particle import Particle
+import random
 
 class World:
     def __init__(self, gridRes, screenWidth, screenHeight, mode="SANDBOX"):
@@ -37,30 +38,38 @@ class World:
         centerX = self.screenWidth // 2
         centerY = self.screenHeight // 2
         
-        # Obstáculos cinza (círculos)
-        self.obstacles.add(Circle(x=centerX, y=centerY, radius=80))
-        self.obstacles.add(Circle(x=centerX - 300, y=centerY + 200, radius=60))
-        self.obstacles.add(Circle(x=centerX + 300, y=centerY + 200, radius=60))
+        # Círculo grande no centro, acima da parte mais estreita do funil
+        self.obstacles.add(Circle(x=centerX, y=centerY - 50, radius=80))
         
-        # Dois telhados inclinados formando um V invertido
-        # Telhado esquerdo: do topo-esquerdo até o meio
+        # Pinos (círculos menores) abaixo da abertura para as partículas quicarem
+        base_y = centerY + 350
+        self.obstacles.add(Circle(x=centerX, y=base_y, radius=20))
+        self.obstacles.add(Circle(x=centerX - 70, y=base_y + 80, radius=20))
+        self.obstacles.add(Circle(x=centerX + 70, y=base_y + 80, radius=20))
+        self.obstacles.add(Circle(x=centerX - 140, y=base_y + 160, radius=20))
+        self.obstacles.add(Circle(x=centerX, y=base_y + 160, radius=20))
+        self.obstacles.add(Circle(x=centerX + 140, y=base_y + 160, radius=20))
+        
+        # Dois telhados inclinados formando um funil COM ABERTURA REAL
         roof_top_y = centerY - 150
-        roof_middle_y = centerY + 300
-        left_x = centerX - 400
-        right_x = centerX + 400
+        roof_middle_y = centerY + 250
+        gap = 10  # Abertura total de 80 pixels (40 para cada lado do centro)
         
-        self.obstacles.add(Roof(x1=left_x, y1=roof_top_y, x2=centerX, y2=roof_middle_y))
-        self.obstacles.add(Roof(x1=right_x, y1=roof_top_y, x2=centerX, y2=roof_middle_y))
+        # Telhado esquerdo para ANTES do centro
+        self.obstacles.add(Roof(x1=centerX - 400, y1=roof_top_y, x2=centerX - gap, y2=roof_middle_y))
+        # Telhado direito começa DEPOIS do centro
+        self.obstacles.add(Roof(x1=centerX + 400, y1=roof_top_y, x2=centerX + gap, y2=roof_middle_y))
         
-        # Ativar spawner automático com geração constante e levemente alta
+        # Ativar spawner automático
         self.spawnActive = True
-        self.spawnInterval = 0.03  # Spawn mais frequente (33 partículas/segundo)
+        self.spawnInterval = 0.03  
         
-        # Criar algumas partículas iniciais (caindo do topo)
-        for i in range(10):
-            x = 100 + i * (self.screenWidth - 200) // 10
-            y = 30 + i * 10
-            vx = -50 + i * 10  # velocidade horizontal variada
+        
+        # Criar algumas partículas iniciais centralizadas
+        for i in range(15):
+            x = centerX + random.uniform(-20, 20)
+            y = 30 + random.uniform(-10, 20)
+            vx = random.uniform(-15, 15)
             vy = 0
             self.particles.append(Particle(x=x, y=y, speedX=vx, speedY=vy, mass=1.0))
     
@@ -77,12 +86,18 @@ class World:
         self.particles.append(particle)
     
     def spawnParticle(self):
-        """Spawn automático de partícula no topo da tela"""
+        """Spawn automático de partícula centralizado no topo da tela"""
         import random
-        x = random.randint(100, self.screenWidth - 100)
+        centerX = self.screenWidth // 2
+        
+        # Centraliza o spawn com uma pequena variação (-20 a 20) para espalhar levemente
+        x = centerX + random.uniform(-20, 20)
         y = 20
-        vx = random.uniform(-30, 30)
+        
+        # Velocidade horizontal baixa para caírem mais retas
+        vx = random.uniform(-15, 15)
         vy = 0
+        
         self.particles.append(Particle(x=x, y=y, speedX=vx, speedY=vy, mass=1.0))
     
     def update(self, dt):
