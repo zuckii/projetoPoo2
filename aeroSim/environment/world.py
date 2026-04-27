@@ -39,10 +39,10 @@ class World:
         centerY = self.screenHeight // 2
         
         # Círculo grande no centro, acima da parte mais estreita do funil
-        self.obstacles.add(Circle(x=centerX, y=centerY - 50, radius=80))
+        self.obstacles.add(Circle(x=centerX, y=centerY - 300, radius=80))
         
         # Pinos (círculos menores) abaixo da abertura para as partículas quicarem
-        base_y = centerY + 350
+        base_y = centerY + 250
         self.obstacles.add(Circle(x=centerX, y=base_y, radius=20))
         self.obstacles.add(Circle(x=centerX - 70, y=base_y + 80, radius=20))
         self.obstacles.add(Circle(x=centerX + 70, y=base_y + 80, radius=20))
@@ -51,8 +51,8 @@ class World:
         self.obstacles.add(Circle(x=centerX + 140, y=base_y + 160, radius=20))
         
         # Dois telhados inclinados formando um funil COM ABERTURA REAL
-        roof_top_y = centerY - 150
-        roof_middle_y = centerY + 250
+        roof_top_y = centerY - 250
+        roof_middle_y = centerY + 200
         gap = 10  # Abertura total de 80 pixels (40 para cada lado do centro)
         
         # Telhado esquerdo para ANTES do centro

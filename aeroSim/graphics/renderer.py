@@ -10,7 +10,7 @@ class Renderer:
         pygame.display.set_caption("Aero Simulator")
         self.gridRes = gridRes
         self.font = pygame.font.Font(None, 36)
-        self.offset_y = -200  # Offset para mover elementos para cima
+        self.offset_y = -100  # Offset para mover elementos para cima
 
     def render(self, world):
         self.screen.fill((30, 30, 30))
