@@ -45,7 +45,7 @@ class Particle:
         
         # damping atua como "restituição" (quique). 
         # Atrito fixo em 0.01 (muito baixo, escorrega fácil)
-        friction = 0.03
+        friction = 0.01
         
         self.vx = (-vn_x * damping) + (vt_x * (1.0 - friction))
         self.vy = (-vn_y * damping) + (vt_y * (1.0 - friction))
