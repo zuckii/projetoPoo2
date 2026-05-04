@@ -1,3 +1,4 @@
+import pygame
 from aeroSim.core.engine import Engine
 from aeroSim.environment.world import World
 from aeroSim.physics.solver import AeroSolver
@@ -10,28 +11,30 @@ class Simulation:
         self.engine = Engine(simConfig.FPS_LIMIT)
         self.mode = simConfig.SIMULATION_MODE
         
+        # Força a simulação a ler a resolução NATIVA do seu notebook
+        pygame.init()
+        info = pygame.display.Info()
+        native_w = info.current_w
+        native_h = info.current_h
+        
+        # Alimenta o Mundo e o Renderizador com o tamanho exato da tela
         self.world = World(
             simConfig.GRID_RES, 
-            self.engine.screenWidth, 
-            self.engine.screenHeight,
+            native_w, 
+            native_h,
             mode=self.mode
         )
         self.solver = AeroSolver(SimpleAeroModel())
-        self.renderer = Renderer(self.engine.screenWidth, self.engine.screenHeight, simConfig.GRID_RES)
+        self.renderer = Renderer(native_w, native_h, simConfig.GRID_RES)
 
     def run(self):
         while self.engine.isRunning:
             dt = self.engine.updateTime()
             
             if self.mode == "SANDBOX":
-                # SANDBOX: usar stepSandbox
                 self.solver.stepSandbox(self.world, dt)
             else:
-                # FLUID: usar step normal
                 self.solver.step(self.world, dt)
             
-            # Atualizar mundo
             self.world.update(dt)
-            
-            # Renderizar
             self.renderer.render(self.world)

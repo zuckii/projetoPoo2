@@ -35,12 +35,8 @@ class World:
         screen_h = self.screenHeight
 
         wall_thickness = max(20, int(screen_w * 0.02))
-        
-        # Deixei o buraco com 25% da tela. Isso ajuda a encurtar a plataforma 
-        # o suficiente para ela ficar bem íngreme sem perder a estética Donkey Kong.
         ball_gap = int(screen_w * 0.25)  
 
-        # Apenas 3 plataformas para termos espaço de sobra para a inclinação violenta
         n_platforms = 3
         top_margin = screen_h * 0.05
         bottom_margin = screen_h * 0.05
@@ -48,10 +44,10 @@ class World:
 
         vertical_gap = available_height / n_platforms
         
-        # A plataforma vai descer 90% de todo o espaço do andar! Muito íngreme.
-        dy = vertical_gap * 0.99
+        # Queda extrema (90% do espaço)
+        dy = vertical_gap * 0.90  
 
-        # Paredes laterais para a bolinha não vazar
+        # Paredes laterais agora vão colar perfeitamente nos cantos do monitor
         self.obstacles.add(Polygon(x=wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
         self.obstacles.add(Polygon(x=screen_w - wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
 
@@ -60,11 +56,9 @@ class World:
             y_end = y_start + dy
 
             if i % 2 == 0:
-                # Esquerda para Direita
                 x_start = wall_thickness
                 x_end = screen_w - ball_gap
             else:
-                # Direita para Esquerda
                 x_start = screen_w - wall_thickness
                 x_end = ball_gap
 
@@ -75,12 +69,10 @@ class World:
         self.particles = []
 
     def spawnParticle(self):
-        """Nasce bem no começo da primeiríssima rampa (canto esquerdo)"""
+        """Nasce bem no começo da primeira rampa (canto esquerdo)"""
         import random
         
         wall_thickness = max(20, int(self.screenWidth * 0.02))
-        
-        # Nasce grudadinho na parede esquerda para aproveitar a ladeira inteira
         x = wall_thickness + 30 + random.uniform(-10, 10)
         y = self.screenHeight * 0.02
         
