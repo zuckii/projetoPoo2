@@ -1,3 +1,4 @@
+import ctypes
 import pygame
 from aeroSim.core.engine import Engine
 from aeroSim.environment.world import World
@@ -11,21 +12,32 @@ class Simulation:
         self.engine = Engine(simConfig.FPS_LIMIT)
         self.mode = simConfig.SIMULATION_MODE
         
-        # Força a simulação a ler a resolução NATIVA do seu notebook
-        pygame.init()
-        info = pygame.display.Info()
-        native_w = info.current_w
-        native_h = info.current_h
+        # Desliga a mentira de Escala do Windows
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except AttributeError:
+            pass
         
-        # Alimenta o Mundo e o Renderizador com o tamanho exato da tela
+        pygame.init()
+        
+        # A MÁGICA: Abre a tela fullscreen primeiro
+        temp_screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        
+        # Mede o tamanho exato da superfície gráfica criada
+        real_w = temp_screen.get_width()
+        real_h = temp_screen.get_height()
+        
+        # Agora sim repassamos as dimensões VERDADEIRAS para o Mundo criar as plataformas
         self.world = World(
             simConfig.GRID_RES, 
-            native_w, 
-            native_h,
+            real_w, 
+            real_h,
             mode=self.mode
         )
         self.solver = AeroSolver(SimpleAeroModel())
-        self.renderer = Renderer(native_w, native_h, simConfig.GRID_RES)
+        
+        # E passamos pro Renderer usar essa mesma medida
+        self.renderer = Renderer(real_w, real_h, simConfig.GRID_RES)
 
     def run(self):
         while self.engine.isRunning:

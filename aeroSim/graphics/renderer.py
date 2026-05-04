@@ -7,11 +7,12 @@ from aeroSim.entities.simplePlatform import SimplePlatform
 
 class Renderer:
     def __init__(self, width, height, gridRes):
+        # Recebe o width e height exatos que o Simulation passou
         self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
         pygame.display.set_caption("Aero Simulator")
         self.gridRes = gridRes
         self.font = pygame.font.Font(None, 36)
-        self.offset_y = 0 
+        self.offset_y = 0
         
     def render(self, world):
         self.screen.fill((30, 30, 30))
