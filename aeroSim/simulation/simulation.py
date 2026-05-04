@@ -20,14 +20,12 @@ class Simulation:
         
         pygame.init()
         
-        # A MÁGICA: Abre a tela fullscreen primeiro
+        # Abre a tela fullscreen primeiro para medir
         temp_screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        
-        # Mede o tamanho exato da superfície gráfica criada
         real_w = temp_screen.get_width()
         real_h = temp_screen.get_height()
         
-        # Agora sim repassamos as dimensões VERDADEIRAS para o Mundo criar as plataformas
+        # Repassa as dimensões verdadeiras para o Mundo
         self.world = World(
             simConfig.GRID_RES, 
             real_w, 
@@ -35,8 +33,6 @@ class Simulation:
             mode=self.mode
         )
         self.solver = AeroSolver(SimpleAeroModel())
-        
-        # E passamos pro Renderer usar essa mesma medida
         self.renderer = Renderer(real_w, real_h, simConfig.GRID_RES)
 
     def run(self):
