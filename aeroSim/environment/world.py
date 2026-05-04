@@ -30,7 +30,18 @@ class World:
             self._initFluid()
     
     def _initSandbox(self):
-        """Inicializa SANDBOX com 3 plataformas de ponta a ponta e muita inclinação"""
+        """Inicializa SANDBOX com 3 plataformas e partículas menores em massa"""
+        import pygame
+        
+        try:
+            info = pygame.display.Info()
+            if info.current_w > 0:
+                self.screenWidth = info.current_w
+            if info.current_h > 0:
+                self.screenHeight = info.current_h
+        except:
+            pass
+
         screen_w = self.screenWidth
         screen_h = self.screenHeight
 
@@ -43,11 +54,8 @@ class World:
         available_height = screen_h - top_margin - bottom_margin
 
         vertical_gap = available_height / n_platforms
-        
-        # Queda extrema (90% do espaço)
         dy = vertical_gap * 0.90  
 
-        # Paredes laterais agora vão colar perfeitamente nos cantos do monitor
         self.obstacles.add(Polygon(x=wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
         self.obstacles.add(Polygon(x=screen_w - wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
 
@@ -65,7 +73,8 @@ class World:
             self.obstacles.add(Roof(x_start, y_start, x_end, y_end))
 
         self.spawnActive = True
-        self.spawnInterval = 0.03
+        # Geração muito mais rápida para criar o volume da "massa"
+        self.spawnInterval = 0.01 
         self.particles = []
 
     def spawnParticle(self):
@@ -73,13 +82,16 @@ class World:
         import random
         
         wall_thickness = max(20, int(self.screenWidth * 0.02))
-        x = wall_thickness + 30 + random.uniform(-10, 10)
+        
+        # Espalha um pouquinho mais no eixo X para engrossar o fluxo
+        x = wall_thickness + 30 + random.uniform(-15, 15)
         y = self.screenHeight * 0.02
         
         vx = random.uniform(1, 4)
         vy = 0
 
-        self.particles.append(Particle(x=x, y=y, speedX=vx, speedY=vy, mass=1.0))
+        # Define explicitamente o raio menor (3.0 em vez do padrão 5.0)
+        self.particles.append(Particle(x=x, y=y, speedX=vx, speedY=vy, mass=1.0, radius=3.0))
     
     def _initFluid(self):
         centerX = self.screenWidth // 2

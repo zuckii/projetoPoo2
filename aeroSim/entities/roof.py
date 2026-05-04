@@ -1,7 +1,6 @@
 from aeroSim.entities.obstacle import Obstacle
 import math
 
-print("---> CARREGOU O ARQUIVO ROOF.PY CORRETO! <---")
 
 class Roof(Obstacle):
     """Plano inclinado (telhado) para colisão de partículas"""
