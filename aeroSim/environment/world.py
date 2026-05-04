@@ -74,7 +74,7 @@ class World:
 
         self.spawnActive = True
         # Geração muito mais rápida para criar o volume da "massa"
-        self.spawnInterval = 0.01 
+        self.spawnInterval = 0.03
         self.particles = []
 
     def spawnParticle(self):
