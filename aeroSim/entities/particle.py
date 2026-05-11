@@ -7,6 +7,7 @@ class Particle:
         vy: float = 0.0,
         mass: float = 1.0,
         radius: float = 5.0,
+        color: tuple = (255, 255, 255)
     ) -> None:
         self.x = x
         self.y = y
@@ -14,6 +15,7 @@ class Particle:
         self.vy = vy
         self.mass = mass
         self.radius = radius
+        self.color = color
         self.is_alive = True
 
     def update_position(self, dt: float) -> None:

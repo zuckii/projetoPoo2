@@ -1,10 +1,7 @@
 from aeroSim.entities.obstacle import Obstacle
 import math
 
-
 class Roof(Obstacle):
-    """Inclined line segment used for ramps and roof collisions."""
-
     def __init__(self, x1: float, y1: float, x2: float, y2: float) -> None:
         self.x1 = x1
         self.y1 = y1

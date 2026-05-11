@@ -4,20 +4,22 @@ from aeroSim.entities.circle import Circle
 from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 from aeroSim.entities.particle import Particle
-
+from aeroSim.persistence.repository import PersistenceRepository
 
 class World:
-    def __init__(self, grid_res: int, screen_width: int, screen_height: int, mode: str = "SANDBOX") -> None:
+    def __init__(self, grid_res: int, screen_width: int, screen_height: int, mode: str = "SANDBOX", map_name: str = "default") -> None:
         self.grid = FluidGrid(grid_res)
         self.obstacles = []
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.mode = mode
+        self.map_name = map_name
 
         self.particles = []
         self.spawn_timer = 0.0
-        self.spawn_interval = 0.03
         self.spawn_active = False
+        
+        self.repo = PersistenceRepository()
 
         if mode == "SANDBOX":
             self._init_sandbox()
@@ -27,36 +29,18 @@ class World:
     def _init_sandbox(self) -> None:
         screen_w = self.screen_width
         screen_h = self.screen_height
-
         wall_thickness = max(20, int(screen_w * 0.02))
-        ball_gap = int(screen_w * 0.25)
-
-        n_platforms = 3
-        top_margin = screen_h * 0.05
-        bottom_margin = screen_h * 0.05
-        available_height = screen_h - top_margin - bottom_margin
-        vertical_gap = available_height / n_platforms
-
-        ramp_drop = vertical_gap * 0.90
 
         self.obstacles.append(Polygon(x=wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
         self.obstacles.append(Polygon(x=screen_w - wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
 
-        for i in range(n_platforms):
-            y_start = top_margin + (i * vertical_gap)
-            y_end = y_start + ramp_drop
+        ramps = self.repo.get_maps(self.map_name)
+        for ramp in ramps:
+            self.obstacles.append(Roof(ramp.x_start, ramp.y_start, ramp.x_end, ramp.y_end))
 
-            if i % 2 == 0:
-                x_start = wall_thickness
-                x_end = screen_w - ball_gap
-            else:
-                x_start = screen_w - wall_thickness
-                x_end = ball_gap
-
-            self.obstacles.append(Roof(x_start, y_start, x_end, y_end))
-
+        preset = self.repo.get_preset("default")
+        self.spawn_interval = preset.spawn_interval if preset else 0.09
         self.spawn_active = True
-        self.spawn_interval = 0.09
         self.particles = []
 
     def spawn_particle(self) -> None:
@@ -66,8 +50,11 @@ class World:
 
         vx = random.uniform(1, 4)
         vy = 0.0
+        
+        radius = random.uniform(3.0, 8.0)
+        color = (random.randint(50, 255), random.randint(50, 255), random.randint(150, 255))
 
-        self.particles.append(Particle(x=x, y=y, vx=vx, vy=vy, mass=1.0))
+        self.particles.append(Particle(x=x, y=y, vx=vx, vy=vy, mass=1.0, radius=radius, color=color))
 
     def _init_fluid(self) -> None:
         center_x = self.screen_width // 2

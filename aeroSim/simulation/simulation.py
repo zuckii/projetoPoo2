@@ -7,7 +7,7 @@ from aeroSim.graphics.renderer import Renderer
 from aeroSim.config import simulationConfig as simConfig
 
 class Simulation:
-    def __init__(self) -> None:
+    def __init__(self, map_name: str = "default") -> None:
         self.mode = simConfig.SIMULATION_MODE
         self._set_windows_dpi()
 
@@ -23,6 +23,7 @@ class Simulation:
             self.screen_width,
             self.screen_height,
             mode=self.mode,
+            map_name=map_name
         )
         self.solver = AeroSolver()
         self.renderer = Renderer(self.screen_width, self.screen_height)

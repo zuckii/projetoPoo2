@@ -6,6 +6,7 @@ Author-email: Zuchi <zuchii.victor@gmail.com>
 Requires-Python: >=3.12
 Description-Content-Type: text/markdown
 Requires-Dist: pygame>=2.6.1
+Requires-Dist: sqlalchemy>=2.0.49
 
 # projetoPoo2
 

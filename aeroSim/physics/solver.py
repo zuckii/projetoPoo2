@@ -4,7 +4,6 @@ from aeroSim.entities.circle import Circle
 from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 
-
 class AeroSolver:
     def step(self, world, dt: float) -> None:
         if not world.particles:
@@ -88,7 +87,7 @@ class AeroSolver:
                             ny = dy / dist
 
                             overlap = min_dist - dist
-                            separation = overlap / 2 + 0.5
+                            separation = overlap * 0.5
 
                             p1.x -= nx * separation
                             p1.y -= ny * separation
@@ -100,7 +99,7 @@ class AeroSolver:
                             dvn = dvx * nx + dvy * ny
 
                             if dvn < 0:
-                                damping = physConfig.BOUNCE_DAMPING
+                                damping = physConfig.BOUNCE_DAMPING if dvn < -15.0 else 0.0
                                 impulse = -(1 + damping) * dvn / (1 / p1.mass + 1 / p2.mass)
                                 p1.vx -= impulse * nx / p1.mass
                                 p1.vy -= impulse * ny / p1.mass
@@ -122,7 +121,7 @@ class AeroSolver:
             overlap = obstacle.radius + particle.radius - dist
             particle.x += nx * overlap
             particle.y += ny * overlap
-            particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING)
+            particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
 
     def _resolve_polygon_collision(self, particle, obs) -> None:
         half_w = obs.width / 2
@@ -149,9 +148,9 @@ class AeroSolver:
                 ny = 0.0 if abs(dx) > abs(dy) else (1.0 if dy > 0 else -1.0)
 
             overlap = particle.radius - dist
-            particle.x += nx * (overlap + 1)
-            particle.y += ny * (overlap + 1)
-            particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING)
+            particle.x += nx * overlap
+            particle.y += ny * overlap
+            particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
 
     def _resolve_roof_collision(self, particle, roof) -> None:
         cx, cy = roof.get_closest_point(particle.x, particle.y)
@@ -169,7 +168,7 @@ class AeroSolver:
             if overlap > 0:
                 particle.x += nx * overlap
                 particle.y += ny * overlap
-                particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING)
+                particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
 
     def _check_bounds(self, particle, world) -> None:
         margin = 100

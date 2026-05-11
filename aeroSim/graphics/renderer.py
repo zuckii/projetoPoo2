@@ -3,7 +3,6 @@ from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.circle import Circle
 from aeroSim.entities.roof import Roof
 
-
 class Renderer:
     def __init__(self, width: int, height: int) -> None:
         self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
@@ -43,13 +42,9 @@ class Renderer:
                     pygame.draw.line(self.screen, (255, 100, 200), p1, p2, 4)
 
         for particle in world.get_alive_particles():
-            speed = (particle.vx**2 + particle.vy**2) ** 0.5
-            color_intensity = min(255, int(50 + speed / 2))
-            color = (255, min(255, color_intensity // 2), 50)
-
             pygame.draw.circle(
                 self.screen,
-                color,
+                particle.color,
                 (int(particle.x), int(particle.y + self.offset_y)),
                 int(particle.radius),
             )
