@@ -35,11 +35,15 @@ class World:
         self.obstacles.append(Polygon(x=screen_w - wall_thickness / 2, y=screen_h / 2, width=wall_thickness, height=screen_h))
 
         ramps = self.repo.get_maps(self.map_name)
-        for ramp in ramps:
-            self.obstacles.append(Roof(ramp.x_start, ramp.y_start, ramp.x_end, ramp.y_end))
+        for i, ramp in enumerate(ramps):
+            speed = 0.0
+            if self.map_name == "dk2" and i == 2:
+                speed = 1.0
+            
+            self.obstacles.append(Roof(ramp.x_start, ramp.y_start, ramp.x_end, ramp.y_end, rotation_speed=speed))
 
         preset = self.repo.get_preset("default")
-        self.spawn_interval = preset.spawn_interval if preset else 0.09
+        self.spawn_interval = preset.spawn_interval if preset else 0.15
         self.spawn_active = True
         self.particles = []
 
@@ -62,13 +66,19 @@ class World:
         self.obstacles.append(Circle(x=center_x, y=center_y, radius=100))
         self.particles.append(Particle(x=50, y=center_y, vx=300.0, vy=0.0, mass=1.0, radius=8.0))
 
+    
+
     def update(self, dt: float) -> None:
         kill_y_threshold = self.screen_height - 20
         for particle in self.particles:
             if particle.y > kill_y_threshold:
                 particle.is_alive = False
 
-        self.particles = [particle for particle in self.particles if particle.is_alive]
+        self.particles = [p for p in self.particles if p.is_alive]
+
+        for obs in self.obstacles:
+            if hasattr(obs, 'update'):
+                obs.update(dt)
 
         if self.spawn_active:
             self.spawn_timer += dt

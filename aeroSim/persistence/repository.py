@@ -42,18 +42,21 @@ class PersistenceRepository:
                     MapModel(name="funnel", x_start=w*0.48, y_start=h*0.59, x_end=w*0.495, y_end=h*0.8),
                     MapModel(name="funnel", x_start=w*0.52, y_start=h*0.59, x_end=w*0.505, y_end=h*0.8),
 
+                    # DK 2.0 revisado
                     MapModel(name="dk2", x_start=20, y_start=h*0.2, x_end=w*0.4, y_end=h*0.28),
                     MapModel(name="dk2", x_start=w*0.408, y_start=h*0.282, x_end=w-gap, y_end=h*0.4),
-                    MapModel(name="dk2", x_start=w*0.6, y_start=h*0.27, x_end=w*0.6, y_end=h*0.34),
+                    MapModel(name="dk2", x_start=w*0.6, y_start=h*0.27, x_end=w*0.6, y_end=h*0.37), 
                     
                     MapModel(name="dk2", x_start=w-20, y_start=h*0.4, x_end=w*0.6, y_end=h*0.5),
                     MapModel(name="dk2", x_start=w*0.592, y_start=h*0.502, x_end=gap, y_end=h*0.6),
                     MapModel(name="dk2", x_start=w*0.35, y_start=h*0.55, x_end=w*0.35, y_end=h*0.48),
 
                     MapModel(name="dk2", x_start=20, y_start=h*0.6, x_end=w*0.3, y_end=h*0.7),
-                    MapModel(name="dk2", x_start=w*0.3, y_start=h*0.7, x_end=w*0.33, y_end=h*0.65),
-                    MapModel(name="dk2", x_start=w*0.33, y_start=h*0.65, x_end=w*0.36, y_end=h*0.72),
-                    MapModel(name="dk2", x_start=w*0.36, y_start=h*0.72, x_end=w-gap, y_end=h*0.85),
+                    # Triângulo 1/3 do tamanho
+                    MapModel(name="dk2", x_start=w*0.32, y_start=h*0.68, x_end=w*0.33, y_end=h*0.66),
+                    MapModel(name="dk2", x_start=w*0.33, y_start=h*0.66, x_end=w*0.34, y_end=h*0.68),
+                    
+                    MapModel(name="dk2", x_start=w*0.34, y_start=h*0.72, x_end=w-gap, y_end=h*0.85),
                 ]
                 session.add_all(ramps)
             if not session.query(PresetModel).first():
