@@ -158,10 +158,11 @@ class AeroSolver:
         dy = particle.y - cy
         dist_sq = dx * dx + dy * dy
 
-        if dist_sq < particle.radius ** 2:
+        if dist_sq < particle.radius * particle.radius:
             dist = math.sqrt(dist_sq) if dist_sq > 0 else 0.1
             nx, ny = roof.normal_x, roof.normal_y
-            if ny > 0:
+            
+            if dx * nx + dy * ny < 0:
                 nx, ny = -nx, -ny
 
             overlap = particle.radius - dist
