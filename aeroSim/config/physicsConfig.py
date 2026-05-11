@@ -1,5 +1,4 @@
 FLUID_DENSITY = 1.225
-BASE_WIND_SPEED = 5.0
 
 # SANDBOX Physics
 GRAVITY = 500.0  # pixels/s^2

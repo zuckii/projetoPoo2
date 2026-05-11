@@ -24,15 +24,14 @@ class Polygon(Obstacle):
         
         return left <= px <= right and top <= py <= bottom
     
-    def getCorners(self):
-        """Retorna os 4 cantos do retângulo (para renderização)"""
+    def get_corners(self) -> list[tuple[float, float]]:
+        """Return the four rectangle corners for rendering."""
         half_w = self.width / 2
         half_h = self.height / 2
-        
-        corners = [
-            (self.x - half_w, self.y - half_h),  # top-left
-            (self.x + half_w, self.y - half_h),  # top-right
-            (self.x + half_w, self.y + half_h),  # bottom-right
-            (self.x - half_w, self.y + half_h),  # bottom-left
+
+        return [
+            (self.x - half_w, self.y - half_h),
+            (self.x + half_w, self.y - half_h),
+            (self.x + half_w, self.y + half_h),
+            (self.x - half_w, self.y + half_h),
         ]
-        return corners

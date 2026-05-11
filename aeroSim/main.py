@@ -8,6 +8,11 @@
 #   python -m aeroSim.main
 from aeroSim.simulation.simulation import Simulation
 
+
+def main() -> None:
+    simulation = Simulation()
+    simulation.run()
+
+
 if __name__ == "__main__":
-    sim = Simulation()
-    sim.run()
+    main()
