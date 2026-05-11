@@ -4,6 +4,7 @@ aeroSim/__init__.py
 aeroSim/main.py
 aeroSim/config/__init__.py
 aeroSim/config/physicsConfig.py
+aeroSim/config/settings.py
 aeroSim/config/simulationConfig.py
 aeroSim/core/__init__.py
 aeroSim/core/engine.py
@@ -18,6 +19,7 @@ aeroSim/environment/fluidGrid.py
 aeroSim/environment/world.py
 aeroSim/graphics/__init__.py
 aeroSim/graphics/renderer.py
+aeroSim/persistence/__init__.py
 aeroSim/physics/__init__.py
 aeroSim/physics/solver.py
 aeroSim/simulation/__init__.py

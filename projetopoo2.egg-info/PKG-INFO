@@ -11,24 +11,6 @@ Requires-Dist: pygame>=2.6.1
 
 Simulador de partículas com modo **SANDBOX** e formato de fluxo de ar simples.
 
-## Instalação
-
-Recomenda-se criar um ambiente virtual Python 3.12+ e instalar apenas o `pygame`:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install pygame
-```
-
-## Execução
-
-Execute a simulação principal a partir da raiz do projeto:
-
-```powershell
-python -m aeroSim.main
-```
 
 ## Configuração
 
@@ -47,10 +29,3 @@ As configurações principais estão em `aeroSim/config/simulationConfig.py` e `
 - `aeroSim/physics/solver.py` - lógica de física e colisões
 - `aeroSim/graphics/renderer.py` - desenho de obstáculos e partículas
 - `aeroSim/entities/` - modelos de obstáculos e partículas
-
-## Limpeza aplicada
-
-- removidos módulos não usados e arquivos vazios
-- reduzida complexidade de startup e renderização
-- padronizados nomes de método para estilo Python
-- eliminadas dependências não utilizadas no `pyproject.toml`
