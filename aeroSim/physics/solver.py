@@ -1,17 +1,9 @@
 import math
 from aeroSim.config import physicsConfig as physConfig
-from aeroSim.entities.circle import Circle
 from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 
 class AeroSolver:
-    def step(self, world, dt: float) -> None:
-        if not world.particles:
-            return
-
-        particle = world.particles[0]
-        if not any(obs.contains(particle.x, particle.y) for obs in world.obstacles):
-            particle.update_position(dt)
 
     def step_sandbox(self, world, dt: float) -> None:
         particles = world.get_alive_particles()
@@ -34,9 +26,7 @@ class AeroSolver:
 
     def _check_obstacle_collisions(self, particle, world) -> None:
         for obs in world.obstacles:
-            if isinstance(obs, Circle):
-                self._resolve_circle_collision(particle, obs)
-            elif isinstance(obs, Polygon):
+            if isinstance(obs, Polygon):
                 self._resolve_polygon_collision(particle, obs)
             elif isinstance(obs, Roof):
                 self._resolve_roof_collision(particle, obs)
@@ -105,23 +95,6 @@ class AeroSolver:
                                 p1.vy -= impulse * ny / p1.mass
                                 p2.vx += impulse * nx / p2.mass
                                 p2.vy += impulse * ny / p2.mass
-
-    def _resolve_circle_collision(self, particle, obstacle) -> None:
-        dx = particle.x - obstacle.cx
-        dy = particle.y - obstacle.cy
-        dist = math.sqrt(dx * dx + dy * dy)
-
-        if dist < obstacle.radius + particle.radius:
-            if dist > 0:
-                nx = dx / dist
-                ny = dy / dist
-            else:
-                nx, ny = 1.0, 0.0
-
-            overlap = obstacle.radius + particle.radius - dist
-            particle.x += nx * overlap
-            particle.y += ny * overlap
-            particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
 
     def _resolve_polygon_collision(self, particle, obs) -> None:
         half_w = obs.width / 2

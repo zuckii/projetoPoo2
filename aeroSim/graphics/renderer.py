@@ -1,6 +1,5 @@
 import pygame
 from aeroSim.entities.polygon import Polygon
-from aeroSim.entities.circle import Circle
 from aeroSim.entities.roof import Roof
 
 class Renderer:
@@ -14,21 +13,7 @@ class Renderer:
         self.screen.fill((30, 30, 30))
 
         for obs in world.obstacles:
-            if isinstance(obs, Circle):
-                pygame.draw.circle(
-                    self.screen,
-                    (150, 150, 150),
-                    (int(obs.cx), int(obs.cy + self.offset_y)),
-                    int(obs.radius),
-                    2,
-                )
-                pygame.draw.circle(
-                    self.screen,
-                    (100, 100, 100),
-                    (int(obs.cx), int(obs.cy + self.offset_y)),
-                    int(obs.radius) - 2,
-                )
-            elif isinstance(obs, Polygon):
+            if isinstance(obs, Polygon):
                 corners = obs.get_corners()
                 points = [(int(x), int(y + self.offset_y)) for x, y in corners]
                 pygame.draw.polygon(self.screen, (100, 100, 150), points)
@@ -49,8 +34,8 @@ class Renderer:
                 int(particle.radius),
             )
 
-        mode_text = f"Mode: {world.mode} | Particles: {len(world.particles)}"
-        text_surface = self.font.render(mode_text, True, (200, 200, 200))
+        particle_count = len(world.particles)
+        text_surface = self.font.render(f"Particles: {particle_count}", True, (200, 200, 200))
         self.screen.blit(text_surface, (20, 20))
 
         pygame.display.flip()

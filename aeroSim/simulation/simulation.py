@@ -8,7 +8,6 @@ from aeroSim.config import simulationConfig as simConfig
 
 class Simulation:
     def __init__(self, map_name: str = "default") -> None:
-        self.mode = simConfig.SIMULATION_MODE
         self._set_windows_dpi()
 
         pygame.init()
@@ -19,10 +18,8 @@ class Simulation:
         self.screen_height = display_info.current_h
 
         self.world = World(
-            simConfig.GRID_RES,
             self.screen_width,
             self.screen_height,
-            mode=self.mode,
             map_name=map_name
         )
         self.solver = AeroSolver()
@@ -32,10 +29,7 @@ class Simulation:
         while self.engine.is_running:
             dt = self.engine.update_time()
 
-            if self.mode == "SANDBOX":
-                self.solver.step_sandbox(self.world, dt)
-            else:
-                self.solver.step(world=self.world, dt=dt)
+            self.solver.step_sandbox(self.world, dt)
 
             self.world.update(dt)
             self.renderer.render(self.world)

@@ -1,18 +1,14 @@
 import random
-from aeroSim.environment.fluidGrid import FluidGrid
-from aeroSim.entities.circle import Circle
 from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 from aeroSim.entities.particle import Particle
 from aeroSim.persistence.repository import PersistenceRepository
 
 class World:
-    def __init__(self, grid_res: int, screen_width: int, screen_height: int, mode: str = "SANDBOX", map_name: str = "default") -> None:
-        self.grid = FluidGrid(grid_res)
+    def __init__(self, screen_width: int, screen_height: int, map_name: str = "default") -> None:
         self.obstacles = []
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.mode = mode
         self.map_name = map_name
 
         self.particles = []
@@ -21,10 +17,7 @@ class World:
         
         self.repo = PersistenceRepository()
 
-        if mode == "SANDBOX":
-            self._init_sandbox()
-        else:
-            self._init_fluid()
+        self._init_sandbox()
     
     def _init_sandbox(self) -> None:
         screen_w = self.screen_width
@@ -59,12 +52,6 @@ class World:
         color = (random.randint(50, 255), random.randint(50, 255), random.randint(150, 255))
 
         self.particles.append(Particle(x=x, y=y, vx=vx, vy=vy, mass=1.0, radius=radius, color=color))
-
-    def _init_fluid(self) -> None:
-        center_x = self.screen_width // 2
-        center_y = self.screen_height // 2
-        self.obstacles.append(Circle(x=center_x, y=center_y, radius=100))
-        self.particles.append(Particle(x=50, y=center_y, vx=300.0, vy=0.0, mass=1.0, radius=8.0))
 
     
 
