@@ -7,7 +7,8 @@ class Particle:
         vy: float = 0.0,
         mass: float = 1.0,
         radius: float = 5.0,
-        color: tuple = (255, 255, 255)
+        color: tuple = (255, 255, 255),
+        friction: float = 0.01
     ) -> None:
         self.x = x
         self.y = y
@@ -16,6 +17,7 @@ class Particle:
         self.mass = mass
         self.radius = radius
         self.color = color
+        self.friction = friction
         self.is_alive = True
 
     def update_position(self, dt: float) -> None:
@@ -36,6 +38,5 @@ class Particle:
         vt_x = self.vx - vn_x
         vt_y = self.vy - vn_y
 
-        friction = 0.01
-        self.vx = (-vn_x * damping) + (vt_x * (1.0 - friction))
-        self.vy = (-vn_y * damping) + (vt_y * (1.0 - friction))
+        self.vx = (-vn_x * damping) + (vt_x * (1.0 - self.friction))
+        self.vy = (-vn_y * damping) + (vt_y * (1.0 - self.friction))

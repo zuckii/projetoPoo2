@@ -1,11 +1,11 @@
 import os
 import ctypes
 import random
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, selectinload
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.orm import sessionmaker
 from aeroSim.persistence.models import (
     Base, MapModel, PresetModel, ParticleSequenceModel,
-    ParticleDataModel, TestResultModel
+    TestResultModel
 )
 
 class PersistenceRepository:
@@ -19,7 +19,10 @@ class PersistenceRepository:
         
         # Sempre cria tabelas se não existirem
         Base.metadata.create_all(self.engine)
-        self.Session = sessionmaker(bind=self.engine)
+        self.Session = sessionmaker(bind=self.engine, expire_on_commit=False)
+        self._migrate_particle_sequence_seed()
+        self._migrate_test_result_status()
+        self._migrate_preset_friction()
         self._init_defaults()
 
     def _init_defaults(self):
@@ -61,9 +64,57 @@ class PersistenceRepository:
                 ]
                 session.add_all(ramps)
             if not session.query(PresetModel).first():
-                preset = PresetModel(name="default", spawn_interval=0.04)
+                preset = PresetModel(name="default", spawn_interval=0.04, particle_friction=0.007)
                 session.add(preset)
             session.commit()
+
+    def _migrate_particle_sequence_seed(self):
+        inspector = inspect(self.engine)
+        if 'particle_sequences' not in inspector.get_table_names():
+            return
+
+        columns = [column['name'] for column in inspector.get_columns('particle_sequences')]
+        if 'seed' in columns:
+            return
+
+        seed_map = {
+            1000: 123456,
+            1500: 234567,
+            2000: 345678,
+            2500: 456789
+        }
+
+        with self.engine.begin() as conn:
+            conn.execute(text('ALTER TABLE particle_sequences ADD COLUMN seed INTEGER'))
+            for count, seed in seed_map.items():
+                conn.execute(
+                    text('UPDATE particle_sequences SET seed = :seed WHERE particle_count = :count'),
+                    {'seed': seed, 'count': count}
+                )
+
+    def _migrate_test_result_status(self):
+        inspector = inspect(self.engine)
+        if 'test_results' not in inspector.get_table_names():
+            return
+
+        columns = [column['name'] for column in inspector.get_columns('test_results')]
+        if 'status' in columns:
+            return
+
+        with self.engine.begin() as conn:
+            conn.execute(text('ALTER TABLE test_results ADD COLUMN status VARCHAR DEFAULT "Concluído"'))
+
+    def _migrate_preset_friction(self):
+        inspector = inspect(self.engine)
+        if 'presets' not in inspector.get_table_names():
+            return
+
+        columns = [column['name'] for column in inspector.get_columns('presets')]
+        if 'particle_friction' in columns:
+            return
+
+        with self.engine.begin() as conn:
+            conn.execute(text('ALTER TABLE presets ADD COLUMN particle_friction FLOAT DEFAULT 0.01'))
 
     def get_maps(self, name="default"):
         with self.Session() as session:
@@ -73,63 +124,61 @@ class PersistenceRepository:
         with self.Session() as session:
             return session.query(PresetModel).filter_by(name=name).first()
 
+    def get_all_presets(self):
+        with self.Session() as session:
+            return session.query(PresetModel).all()
+
+    def save_preset(self, name: str, spawn_interval: float = 0.04, particle_friction: float = 0.01):
+        with self.Session() as session:
+            preset = session.query(PresetModel).filter_by(name=name).first()
+            if not preset:
+                preset = PresetModel(name=name, spawn_interval=spawn_interval, particle_friction=particle_friction)
+                session.add(preset)
+            else:
+                preset.spawn_interval = spawn_interval
+                preset.particle_friction = particle_friction
+            session.commit()
+            return preset
+
     def generate_particle_sequence(self, sequence_name: str, map_name: str, particle_count: int):
         with self.Session() as session:
-            existing = session.query(ParticleSequenceModel).options(
-                selectinload(ParticleSequenceModel.particles)
-            ).filter_by(sequence_name=sequence_name).first()
-
+            existing = session.query(ParticleSequenceModel).filter_by(sequence_name=sequence_name).first()
             if existing:
                 return existing
+
+            seed_map = {
+                1000: 123456,
+                1500: 234567,
+                2000: 345678,
+                2500: 456789
+            }
+            seed = seed_map.get(particle_count)
+            if seed is None:
+                raise ValueError(
+                    f"Quantidade de partículas inválida: {particle_count}. "
+                    f"Use apenas [1000, 1500, 2000, 2500]."
+                )
 
             seq = ParticleSequenceModel(
                 sequence_name=sequence_name,
                 map_name=map_name,
-                particle_count=particle_count
+                particle_count=particle_count,
+                seed=seed
             )
             session.add(seq)
-            session.flush()
-
-            # Determinismo robusto: usar um gerador local `random.Random`
-            # seedado com `particle_count` para que a geração dependa
-            # apenas da quantidade e não seja afetada pela RNG global.
-            rng = random.Random(particle_count)
-
-            for i in range(particle_count):
-                particle_data = ParticleDataModel(
-                    sequence_id=seq.id,
-                    particle_index=i,
-                    radius=rng.uniform(3.0, 8.0),
-                    color_r=rng.randint(50, 255),
-                    color_g=rng.randint(50, 255),
-                    color_b=rng.randint(150, 255),
-                    initial_vx=rng.uniform(1, 4)
-                )
-                session.add(particle_data)
-
             session.commit()
-
-            return session.query(ParticleSequenceModel).options(
-                selectinload(ParticleSequenceModel.particles)
-            ).filter_by(id=seq.id).first()
+            return seq
 
     def get_particle_sequence(self, sequence_name: str):
         with self.Session() as session:
-            return session.query(ParticleSequenceModel).options(
-                selectinload(ParticleSequenceModel.particles)
-            ).filter_by(sequence_name=sequence_name).first()
+            return session.query(ParticleSequenceModel).filter_by(sequence_name=sequence_name).first()
 
     def get_sequence_particles(self, sequence_name: str):
-        """Recupera todos os dados de partículas de uma sequência"""
-        with self.Session() as session:
-            sequence = session.query(ParticleSequenceModel).filter_by(sequence_name=sequence_name).first()
-            if sequence:
-                particles = session.query(ParticleDataModel).filter_by(sequence_id=sequence.id).all()
-                return particles
-            return []
+        """Compatibilidade: partículas não são mais salvas individualmente."""
+        return []
 
     def save_test_result(self, test_name: str, map_name: str, sequence_name: str,
-                         total_time: float, particles_count: int):
+                         total_time: float, particles_count: int, status: str = 'Concluído'):
         """Salva resultado de um teste"""
         particles_per_second = particles_count / total_time if total_time > 0 else 0
         
@@ -140,7 +189,8 @@ class PersistenceRepository:
                 sequence_name=sequence_name,
                 total_time=total_time,
                 particles_count=particles_count,
-                particles_per_second=particles_per_second
+                particles_per_second=particles_per_second,
+                status=status
             )
             session.add(result)
             session.commit()

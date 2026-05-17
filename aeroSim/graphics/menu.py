@@ -29,11 +29,10 @@ class Menu:
         self.btn_funnel = pygame.Rect(310, 120, 180, 150)
         self.btn_dk2 = pygame.Rect(570, 120, 180, 150)
         
-        # Input de partículas
-        self.input_rect = pygame.Rect(950, 200, 200, 50)
+        # Opções fixas de partículas
         self.particle_count = 1000
-        self.input_active = False
-        self.input_text = "1000"
+        self.count_options = [1000, 1500, 2000, 2500]
+        self.count_buttons = [pygame.Rect(930 + i * 115, 220, 100, 40) for i in range(len(self.count_options))]
         
         self.w_scale = 180 / self.w
         self.h_scale = 150 / self.h
@@ -58,7 +57,7 @@ class Menu:
         y_offset += 40
         
         # Cabeçalho da tabela
-        header_text = "Mapa         | Partículas | Tempo (s) | Fluxo (part/s)"
+        header_text = "Mapa         | Partículas | Tempo (s) | Fluxo (part/s) | Status"
         header = self.tiny_font.render(header_text, True, (200, 200, 100))
         self.screen.blit(header, (50, y_offset))
         
@@ -76,80 +75,53 @@ class Menu:
             map_name = result.map_name.ljust(12)
             particles = str(result.particles_count).ljust(11)
             time_str = f"{result.total_time:.2f}".ljust(10)
-            flux_str = f"{result.particles_per_second:.1f}"
+            flux_str = f"{result.particles_per_second:.1f}".ljust(14)
+            status = (result.status or 'Concluído').ljust(12)
             
-            row_text = f"{map_name}| {particles}| {time_str}| {flux_str}"
-            
-            # Cor: verde para resultado mais recente
-            color = (100, 255, 100) if i == 0 else (200, 200, 200)
-            
-            row = self.tiny_font.render(row_text, True, color)
+            row_text = f"{map_name}| {particles}| {time_str}| {flux_str}| {status}"
+            row = self.tiny_font.render(row_text, True, (200, 200, 200) if i != 0 else (100, 255, 100))
             self.screen.blit(row, (50, y_offset))
             y_offset += 25
 
     def get_particle_count(self):
-        """Tela para o usuário escolher número de partículas"""
-        entering = True
-        self.input_active = True
-        self.input_text = "1000"
-        self.particle_count = 1000
-        pygame.key.start_text_input()
-
-        while entering:
+        """Tela para escolher quantidade fixa de partículas"""
+        selecting = True
+        while selecting:
             self.screen.fill((30, 30, 30))
-            
-            # Título
             title = self.font.render("Quantas Partículas?", True, (255, 255, 255))
             self.screen.blit(title, (350, 150))
-            
-            # Info
-            info = self.small_font.render("Mínimo: 1000 | Máximo: 5000", True, (200, 200, 200))
-            self.screen.blit(info, (350, 250))
-            
-            # Input box
-            pygame.draw.rect(self.screen, (80, 80, 100), self.input_rect)
-            pygame.draw.rect(self.screen, (200, 200, 200), self.input_rect, 3)
-            
-            # Texto no input
-            input_surface = self.input_font.render(self.input_text, True, (255, 255, 255))
-            self.screen.blit(input_surface, (self.input_rect.x + 10, self.input_rect.y + 5))
-            
-            # Instruções
-            instr = self.small_font.render("Pressione ENTER para confirmar", True, (150, 150, 200))
-            self.screen.blit(instr, (300, 400))
-            
+
+            info = self.small_font.render("Escolha uma das opções abaixo:", True, (200, 200, 200))
+            self.screen.blit(info, (350, 240))
+
+            for i, count in enumerate(self.count_options):
+                btn = self.count_buttons[i]
+                btn_color = (100, 100, 120) if btn.collidepoint(pygame.mouse.get_pos()) else (60, 60, 80)
+                pygame.draw.rect(self.screen, btn_color, btn)
+                pygame.draw.rect(self.screen, (200, 200, 200), btn, 2)
+                label = self.small_font.render(str(count), True, (255, 255, 255))
+                label_rect = label.get_rect(center=btn.center)
+                self.screen.blit(label, label_rect)
+
+            instr = self.small_font.render("Clique em uma opção ou ESC para sair", True, (150, 150, 200))
+            self.screen.blit(instr, (350, 420))
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        # Valida entrada
-                        try:
-                            count = int(self.input_text)
-                            if 1000 <= count <= 5000:
-                                self.particle_count = count
-                                entering = False
-                            else:
-                                self.input_text = "1000"
-                        except ValueError:
-                            self.input_text = "1000"
-                    elif event.key == pygame.K_BACKSPACE:
-                        self.input_text = self.input_text[:-1] if self.input_text else "1000"
-                    elif event.key == pygame.K_ESCAPE:
-                        entering = False
-                        pygame.key.stop_text_input()
+                    if event.key == pygame.K_ESCAPE:
                         return None
-                elif event.type == pygame.TEXTINPUT:
-                    # Para inputs numéricos
-                    if event.text.isdigit():
-                        self.input_text += event.text
-                        if len(self.input_text) > 4:
-                            self.input_text = self.input_text[-4:]
-            
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    for i, btn in enumerate(self.count_buttons):
+                        if btn.collidepoint(event.pos):
+                            self.particle_count = self.count_options[i]
+                            selecting = False
+                            break
+
             pygame.display.flip()
-        
-        pygame.key.stop_text_input()
+
         return self.particle_count
 
     def show(self):

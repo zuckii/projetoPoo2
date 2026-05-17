@@ -21,21 +21,14 @@ class World:
         self.target_particles = 150
         self.particles_exited = 0
         self.particle_sequence_data = None
-        
+        self.particle_sequence_rng = None
+
         self.repo = PersistenceRepository()
-        
-        # Carrega sequência persistente se fornecida
-        # ... dentro do __init__ do World ...
 
         if particle_sequence_name:
             self.particle_sequence_data = self.repo.get_particle_sequence(particle_sequence_name)
-            if self.particle_sequence_data:
-                # Carrega todos os dados da sequência
-                self.particle_sequence_data.particles = self.repo.get_sequence_particles(particle_sequence_name)
-        
-        self._init_sandbox()
-    
-    def _init_sandbox(self) -> None:
+            if self.particle_sequence_data and self.particle_sequence_data.seed is not None:
+                self.particle_sequence_rng = random.Random(self.particle_sequence_data.seed)
         screen_w = self.screen_width
         screen_h = self.screen_height
         wall_thickness = max(20, int(screen_w * 0.02))
@@ -57,6 +50,7 @@ class World:
 
         preset = self.repo.get_preset("default")
         self.spawn_interval = preset.spawn_interval if preset else 0.15
+        self.friction = preset.particle_friction if preset else 0.01
         self.spawn_active = True
         self.particles = []
 
@@ -69,17 +63,14 @@ class World:
         y = self.screen_height * 0.02
 
         # Se temos uma sequência persistente, usa os dados dela
-        if self.particle_sequence_data and self.particle_sequence_data.particles:
-            if self.spawned_count < len(self.particle_sequence_data.particles):
-                particle_data = self.particle_sequence_data.particles[self.spawned_count]
-                radius = particle_data.radius
-                color = (particle_data.color_r, particle_data.color_g, particle_data.color_b)
-                vx = particle_data.initial_vx
-            else:
-                # Fallback se houver mais partículas que dados
-                radius = random.uniform(3.0, 8.0)
-                color = (random.randint(50, 255), random.randint(50, 255), random.randint(150, 255))
-                vx = random.uniform(1, 4)
+        if self.particle_sequence_rng is not None:
+            radius = self.particle_sequence_rng.uniform(3.0, 8.0)
+            color = (
+                self.particle_sequence_rng.randint(50, 255),
+                self.particle_sequence_rng.randint(50, 255),
+                self.particle_sequence_rng.randint(150, 255)
+            )
+            vx = self.particle_sequence_rng.uniform(1, 4)
         else:
             # Geração aleatória normal
             radius = random.uniform(3.0, 8.0)
@@ -88,7 +79,16 @@ class World:
         
         vy = 0.0
 
-        self.particles.append(Particle(x=x, y=y, vx=vx, vy=vy, mass=1.0, radius=radius, color=color))
+        self.particles.append(Particle(
+            x=x,
+            y=y,
+            vx=vx,
+            vy=vy,
+            mass=1.0,
+            radius=radius,
+            color=color,
+            friction=self.friction
+        ))
         self.spawned_count += 1
 
     def update(self, dt: float) -> None:
