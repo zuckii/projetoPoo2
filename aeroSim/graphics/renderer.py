@@ -9,7 +9,7 @@ class Renderer:
         self.font = pygame.font.Font(None, 36)
         self.offset_y = 0
 
-    def render(self, world) -> None:
+    def render(self, world, show_timer: bool = False, elapsed_time: float = 0.0) -> None:
         self.screen.fill((30, 30, 30))
 
         for obs in world.obstacles:
@@ -37,5 +37,16 @@ class Renderer:
         particle_count = len(world.particles)
         text_surface = self.font.render(f"Particles: {particle_count}", True, (200, 200, 200))
         self.screen.blit(text_surface, (20, 20))
+        
+        # Mostra cronômetro se em modo teste
+        if show_timer:
+            minutes = int(elapsed_time) // 60
+            seconds = int(elapsed_time) % 60
+            centiseconds = int((elapsed_time % 1) * 100)
+            timer_text = f"{minutes:02d}:{seconds:02d}.{centiseconds:02d}"
+            timer_surface = self.font.render(timer_text, True, (0, 255, 100))
+            # Posiciona no canto superior direito
+            text_width = timer_surface.get_width()
+            self.screen.blit(timer_surface, (self.screen.get_width() - text_width - 20, 20))
 
         pygame.display.flip()

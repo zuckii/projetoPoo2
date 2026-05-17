@@ -4,11 +4,18 @@ from aeroSim.graphics.menu import Menu
 def main():
     try:
         menu = Menu()
-        map_name = menu.show()
         
-        if map_name:
-            simulation = Simulation(map_name=map_name)
-            simulation.run()
+        # Primeiro, usuário escolhe número de partículas
+        particle_count = menu.get_particle_count()
+        if particle_count is None:
+            return
+        
+        # Depois escolhe o mapa
+        selected_map = menu.show()
+        if selected_map:
+            # Todos os mapas executam como teste
+            simulation = Simulation(map_name=selected_map, test_mode=True)
+            simulation.run_test(map_name=selected_map, particle_count=particle_count)
     except Exception as e:
         print(f"Error: {e}")
         import traceback
