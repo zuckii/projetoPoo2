@@ -16,103 +16,125 @@ class Menu:
         self.h = user32.GetSystemMetrics(1)
 
         self.screen = pygame.display.set_mode((1400, 750))
-        pygame.display.set_caption("AeroSim - Menu Principal")
-        self.font = pygame.font.Font(None, 48)
-        self.small_font = pygame.font.Font(None, 24)
-        self.tiny_font = pygame.font.Font(None, 18)
-        self.input_font = pygame.font.Font(None, 36)
+        pygame.display.set_caption("AeroSim")
+        
+        self.font_title = pygame.font.Font(None, 54)
+        self.font_subtitle = pygame.font.Font(None, 28)
+        self.font_normal = pygame.font.Font(None, 24)
+        self.font_small = pygame.font.Font(None, 20)
         
         self.repo = PersistenceRepository(preserve_data=True)
         
-        # Botões de mapas
-        self.btn_default = pygame.Rect(50, 120, 180, 150)
-        self.btn_funnel = pygame.Rect(310, 120, 180, 150)
-        self.btn_dk2 = pygame.Rect(570, 120, 180, 150)
+        self.btn_default = pygame.Rect(300, 150, 240, 200)
+        self.btn_funnel = pygame.Rect(580, 150, 240, 200)
+        self.btn_dk2 = pygame.Rect(860, 150, 240, 200)
         
-        # Opções fixas de partículas
         self.particle_count = 1000
         self.count_options = [1000, 1500, 2000, 2500]
-        self.count_buttons = [pygame.Rect(930 + i * 115, 220, 100, 40) for i in range(len(self.count_options))]
         
-        self.w_scale = 180 / self.w
-        self.h_scale = 150 / self.h
+        start_x = 700 - (len(self.count_options) * 140) // 2
+        self.count_buttons = [pygame.Rect(start_x + i * 140, 350, 120, 50) for i in range(len(self.count_options))]
+        
+        self.w_scale = 240 / self.w
+        self.h_scale = 200 / self.h
+
+        self.bg_color = (25, 27, 31)
+        self.panel_color = (35, 38, 44)
+        self.hover_color = (50, 55, 63)
+        self.text_main = (240, 240, 245)
+        self.text_sub = (150, 160, 170)
+        self.accent = (85, 170, 255)
+        self.success = (100, 200, 130)
 
     def _draw_preview(self, map_name, rect):
         ramps = self.repo.get_maps(map_name)
         for ramp in ramps:
             p1 = (rect.x + int(ramp.x_start * self.w_scale), rect.y + int(ramp.y_start * self.h_scale))
             p2 = (rect.x + int(ramp.x_end * self.w_scale), rect.y + int(ramp.y_end * self.h_scale))
-            pygame.draw.line(self.screen, (255, 100, 200), p1, p2, 2)
+            pygame.draw.line(self.screen, (50, 130, 255), p1, p2, 2)
 
     def _draw_test_results_table(self):
-        """Desenha tabela com últimos 10 resultados de testes"""
-        results = self.repo.get_latest_test_results(limit=10)
+        results = self.repo.get_latest_test_results(limit=8)
+        y_offset = 420
         
-        y_offset = 330
+        pygame.draw.rect(self.screen, self.panel_color, (300, y_offset, 800, 280), border_radius=10)
         
-        # Título
-        title = self.small_font.render("Histórico de Testes", True, (100, 255, 100))
-        self.screen.blit(title, (50, y_offset))
+        title = self.font_subtitle.render("Histórico de Testes", True, self.text_main)
+        self.screen.blit(title, (330, y_offset + 20))
         
-        y_offset += 40
+        y_offset += 70
         
-        # Cabeçalho da tabela
-        header_text = "Mapa         | Partículas | Tempo (s) | Fluxo (part/s) | Status"
-        header = self.tiny_font.render(header_text, True, (200, 200, 100))
-        self.screen.blit(header, (50, y_offset))
+        headers = ["Mapa", "Partículas", "Tempo (s)", "Fluxo (p/s)", "Status"]
+        x_offsets = [330, 480, 630, 780, 930]
         
-        y_offset += 25
-        pygame.draw.line(self.screen, (150, 150, 100), (50, y_offset), (700, y_offset), 1)
-        y_offset += 10
+        for h, x in zip(headers, x_offsets):
+            lbl = self.font_small.render(h, True, self.text_sub)
+            self.screen.blit(lbl, (x, y_offset))
+            
+        y_offset += 30
+        pygame.draw.line(self.screen, (60, 65, 75), (330, y_offset), (1070, y_offset), 2)
+        y_offset += 15
         
         if not results:
-            no_tests = self.tiny_font.render("Nenhum teste executado ainda", True, (150, 150, 150))
-            self.screen.blit(no_tests, (50, y_offset))
+            msg = self.font_normal.render("Nenhum teste executado.", True, self.text_sub)
+            self.screen.blit(msg, (330, y_offset + 10))
             return
         
         for i, result in enumerate(results):
-            # Formatar dados para tabela
-            map_name = result.map_name.ljust(12)
-            particles = str(result.particles_count).ljust(11)
-            time_str = f"{result.total_time:.2f}".ljust(10)
-            flux_str = f"{result.particles_per_second:.1f}".ljust(14)
-            status = (result.status or 'Concluído').ljust(12)
+            status_text = result.status or 'Concluído'
+            if status_text == 'Não concluído':
+                color = (220, 80, 80)
+            elif i == 0:
+                color = self.success
+            else:
+                color = self.text_main
             
-            row_text = f"{map_name}| {particles}| {time_str}| {flux_str}| {status}"
-            row = self.tiny_font.render(row_text, True, (200, 200, 200) if i != 0 else (100, 255, 100))
-            self.screen.blit(row, (50, y_offset))
+            texts = [
+                str(result.map_name).title(),
+                str(result.particles_count),
+                f"{result.total_time:.2f}",
+                f"{result.particles_per_second:.1f}",
+                status_text
+            ]
+            
+            for t, x in zip(texts, x_offsets):
+                lbl = self.font_small.render(t, True, color)
+                self.screen.blit(lbl, (x, y_offset))
+                
             y_offset += 25
 
     def get_particle_count(self):
-        """Tela para escolher quantidade fixa de partículas"""
         selecting = True
         while selecting:
-            self.screen.fill((30, 30, 30))
-            title = self.font.render("Quantas Partículas?", True, (255, 255, 255))
-            self.screen.blit(title, (350, 150))
+            self.screen.fill(self.bg_color)
+            
+            title = self.font_title.render("Configuração de Teste", True, self.text_main)
+            self.screen.blit(title, (title.get_rect(center=(700, 200))))
 
-            info = self.small_font.render("Escolha uma das opções abaixo:", True, (200, 200, 200))
-            self.screen.blit(info, (350, 240))
+            info = self.font_subtitle.render("Selecione a quantidade de partículas:", True, self.text_sub)
+            self.screen.blit(info, (info.get_rect(center=(700, 260))))
 
             for i, count in enumerate(self.count_options):
                 btn = self.count_buttons[i]
-                btn_color = (100, 100, 120) if btn.collidepoint(pygame.mouse.get_pos()) else (60, 60, 80)
-                pygame.draw.rect(self.screen, btn_color, btn)
-                pygame.draw.rect(self.screen, (200, 200, 200), btn, 2)
-                label = self.small_font.render(str(count), True, (255, 255, 255))
-                label_rect = label.get_rect(center=btn.center)
-                self.screen.blit(label, label_rect)
+                is_hover = btn.collidepoint(pygame.mouse.get_pos())
+                color = self.hover_color if is_hover else self.panel_color
+                
+                pygame.draw.rect(self.screen, color, btn, border_radius=8)
+                if is_hover:
+                    pygame.draw.rect(self.screen, self.accent, btn, 2, border_radius=8)
+                    
+                label = self.font_normal.render(str(count), True, self.text_main)
+                self.screen.blit(label, label.get_rect(center=btn.center))
 
-            instr = self.small_font.render("Clique em uma opção ou ESC para sair", True, (150, 150, 200))
-            self.screen.blit(instr, (350, 420))
+            instr = self.font_small.render("Pressione ESC para sair", True, (100, 110, 120))
+            self.screen.blit(instr, (instr.get_rect(center=(700, 450))))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return None
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return None
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for i, btn in enumerate(self.count_buttons):
                         if btn.collidepoint(event.pos):
@@ -125,55 +147,45 @@ class Menu:
         return self.particle_count
 
     def show(self):
-        """Menu para escolher mapa - todos os mapas executam teste"""
         running = True
         selected_map = None
+        
+        change_btn = pygame.Rect(1150, 40, 180, 40)
 
         while running:
-            self.screen.fill((30, 30, 30))
-            
-            # Título
-            title = self.font.render("AeroSim - Selecione o Mapa", True, (255, 255, 255))
-            self.screen.blit(title, (300, 20))
-            
-            subtitle = self.small_font.render("Todos os mapas executarão teste com medição de tempo", True, (200, 200, 200))
-            self.screen.blit(subtitle, (200, 70))
-            
+            self.screen.fill(self.bg_color)
             mouse_pos = pygame.mouse.get_pos()
             
-            # Botão Default
-            btn_color = (100, 100, 120) if self.btn_default.collidepoint(mouse_pos) else (60, 60, 80)
-            pygame.draw.rect(self.screen, btn_color, self.btn_default)
-            pygame.draw.rect(self.screen, (200, 200, 200), self.btn_default, 2)
-            self._draw_preview("default", self.btn_default)
-            self.screen.blit(self.small_font.render("Default", True, (255,255,255)), (80, 135))
+            title = self.font_title.render("AeroSim", True, self.text_main)
+            self.screen.blit(title, (300, 40))
             
-            # Botão Funnel
-            btn_color = (100, 100, 120) if self.btn_funnel.collidepoint(mouse_pos) else (60, 60, 80)
-            pygame.draw.rect(self.screen, btn_color, self.btn_funnel)
-            pygame.draw.rect(self.screen, (200, 200, 200), self.btn_funnel, 2)
-            self._draw_preview("funnel", self.btn_funnel)
-            self.screen.blit(self.small_font.render("Funnel", True, (255,255,255)), (355, 135))
+            subtitle = self.font_subtitle.render("Selecione o ambiente de simulação", True, self.text_sub)
+            self.screen.blit(subtitle, (300, 90))
+            
+            btn_color = self.hover_color if change_btn.collidepoint(mouse_pos) else self.panel_color
+            pygame.draw.rect(self.screen, btn_color, change_btn, border_radius=8)
+            lbl_part = self.font_small.render(f"Partículas: {self.particle_count} (Alterar)", True, self.accent)
+            self.screen.blit(lbl_part, lbl_part.get_rect(center=change_btn.center))
 
-            # Botão DK2
-            btn_color = (100, 100, 120) if self.btn_dk2.collidepoint(mouse_pos) else (60, 60, 80)
-            pygame.draw.rect(self.screen, btn_color, self.btn_dk2)
-            pygame.draw.rect(self.screen, (200, 200, 200), self.btn_dk2, 2)
-            self._draw_preview("dk2", self.btn_dk2)
-            self.screen.blit(self.small_font.render("DK 2.0", True, (255,255,255)), (605, 135))
+            buttons = [
+                (self.btn_default, "Default"),
+                (self.btn_funnel, "Funnel"),
+                (self.btn_dk2, "DK 2.0")
+            ]
+
+            for rect, name in buttons:
+                is_hover = rect.collidepoint(mouse_pos)
+                color = self.hover_color if is_hover else self.panel_color
+                
+                pygame.draw.rect(self.screen, color, rect, border_radius=12)
+                if is_hover:
+                    pygame.draw.rect(self.screen, self.accent, rect, 2, border_radius=12)
+                    
+                self._draw_preview(name.lower().replace(" ", "").replace(".0", ""), rect)
+                
+                lbl = self.font_normal.render(name, True, self.text_main)
+                self.screen.blit(lbl, (rect.x + 20, rect.y + 160))
             
-            # Seção de informações à direita
-            info_x = 830
-            info_label = self.small_font.render(f"Partículas: {self.particle_count}", True, (100, 200, 255))
-            self.screen.blit(info_label, (info_x, 150))
-            
-            change_btn = pygame.Rect(info_x, 200, 150, 40)
-            btn_color = (80, 120, 100) if change_btn.collidepoint(mouse_pos) else (60, 100, 80)
-            pygame.draw.rect(self.screen, btn_color, change_btn)
-            pygame.draw.rect(self.screen, (200, 200, 200), change_btn, 2)
-            self.screen.blit(self.small_font.render("Alterar", True, (255,255,255)), (info_x + 30, 205))
-            
-            # Desenhar tabela de resultados
             self._draw_test_results_table()
             
             for event in pygame.event.get():
@@ -198,5 +210,4 @@ class Menu:
             pygame.display.flip()
             
         pygame.quit()
-        
         return selected_map

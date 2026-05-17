@@ -53,6 +53,7 @@ class Simulation:
         print(f"Mapa: {map_name}, Partículas: {particle_count}")
         
         timeout_status = 'Concluído'
+        aborted = False
         while self.engine.is_running and self.world.particles_exited < self.world.target_particles:
             dt = self.engine.update_time()
             self.solver.step_sandbox(self.world, dt)
@@ -86,6 +87,9 @@ class Simulation:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    # Marcar abortado quando o usuário pressionar ESC
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        aborted = True
                     self.engine.is_running = False
 
             if not self.engine.is_running:
@@ -97,7 +101,12 @@ class Simulation:
         
         # Salva resultado
         test_name = f"Test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        result_status = timeout_status if 'timeout_status' in locals() else 'Concluído'
+        if 'timeout_status' in locals() and timeout_status == 'Não concluído':
+            result_status = 'Não concluído'
+        elif aborted:
+            result_status = 'Não concluído'
+        else:
+            result_status = 'Concluído'
         self.repo.save_test_result(
             test_name=test_name,
             map_name=map_name,

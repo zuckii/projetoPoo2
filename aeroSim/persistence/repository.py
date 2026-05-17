@@ -64,7 +64,7 @@ class PersistenceRepository:
                 ]
                 session.add_all(ramps)
             if not session.query(PresetModel).first():
-                preset = PresetModel(name="default", spawn_interval=0.04, particle_friction=0.007)
+                preset = PresetModel(name="default", spawn_interval=0.05, particle_friction=0.007)
                 session.add(preset)
             session.commit()
 

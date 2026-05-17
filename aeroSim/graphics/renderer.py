@@ -3,6 +3,8 @@ from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 
 class Renderer:
+    RAMP_COLOR = (50, 130, 255)
+
     def __init__(self, width: int, height: int) -> None:
         self.screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
         pygame.display.set_caption("Aero Simulator")
@@ -23,8 +25,8 @@ class Renderer:
                 if len(corners) == 2:
                     p1 = (int(corners[0][0]), int(corners[0][1] + self.offset_y))
                     p2 = (int(corners[1][0]), int(corners[1][1] + self.offset_y))
-                    pygame.draw.line(self.screen, (220, 20, 150), p1, p2, 8)
-                    pygame.draw.line(self.screen, (255, 100, 200), p1, p2, 4)
+                    pygame.draw.line(self.screen, self.RAMP_COLOR, p1, p2, 8)
+                    pygame.draw.line(self.screen, self.RAMP_COLOR, p1, p2, 4)
 
         for particle in world.get_alive_particles():
             pygame.draw.circle(
