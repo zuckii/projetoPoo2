@@ -52,11 +52,13 @@ class World:
             ramp_right_x = second_ramp.x_start
             ramp_right_y = second_ramp.y_start
 
-            min_x = ramp_left_x + 40
-            max_x = ramp_right_x - 20
+            
+            min_x = ramp_left_x + 1000
+            max_x = min_x + 150
             broom_width = 24
-            broom_height = 150
+            broom_height = 220
             broom_speed = 25.0
+            broom_ramp_offset_y = -50.0
 
             self.obstacles.append(Broom(
                 x1=ramp_right_x,
@@ -68,7 +70,8 @@ class World:
                 min_x=min_x,
                 max_x=max_x,
                 speed=broom_speed,
-                start_direction=-1
+                start_direction=-1,
+                ramp_offset_y=broom_ramp_offset_y
             ))
 
         preset = self.repo.get_preset("default")

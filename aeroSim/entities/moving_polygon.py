@@ -26,11 +26,13 @@ class MovingPolygon(Polygon):
 
 
 class Broom(MovingPolygon):
-    def __init__(self, x1, y1, x2, y2, width, height, min_x, max_x, speed, start_direction=-1):
+    def __init__(self, x1, y1, x2, y2, width, height, min_x, max_x, speed, start_direction=-1,
+                 ramp_offset_y: float = 0.0):
         self.ramp_x1 = x1
         self.ramp_y1 = y1
         self.ramp_x2 = x2
         self.ramp_y2 = y2
+        self.ramp_offset_y = ramp_offset_y
         self.min_x = min(min_x, max_x)
         self.max_x = max(min_x, max_x)
         start_x = self.max_x if start_direction < 0 else self.min_x
@@ -41,11 +43,11 @@ class Broom(MovingPolygon):
 
     def _align_to_ramp(self):
         if self.ramp_x2 == self.ramp_x1:
-            self.y = self.ramp_y1
+            self.y = self.ramp_y1 + self.ramp_offset_y
             return
 
         t = (self.x - self.ramp_x1) / (self.ramp_x2 - self.ramp_x1)
-        self.y = self.ramp_y1 + t * (self.ramp_y2 - self.ramp_y1)
+        self.y = self.ramp_y1 + t * (self.ramp_y2 - self.ramp_y1) + self.ramp_offset_y
 
     def update(self, dt):
         super().update(dt)
