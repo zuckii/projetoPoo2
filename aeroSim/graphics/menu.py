@@ -28,6 +28,7 @@ class Menu:
         self.btn_default = pygame.Rect(300, 150, 240, 200)
         self.btn_funnel = pygame.Rect(580, 150, 240, 200)
         self.btn_dk2 = pygame.Rect(860, 150, 240, 200)
+        self.btn_default_modified = pygame.Rect(1120, 150, 240, 200)
         
         self.particle_count = 1000
         self.count_options = [1000, 1500, 2000, 2500]
@@ -52,6 +53,18 @@ class Menu:
             p1 = (rect.x + int(ramp.x_start * self.w_scale), rect.y + int(ramp.y_start * self.h_scale))
             p2 = (rect.x + int(ramp.x_end * self.w_scale), rect.y + int(ramp.y_end * self.h_scale))
             pygame.draw.line(self.screen, (50, 130, 255), p1, p2, 2)
+
+        if map_name == "default_modified":
+            block_x = rect.x + int(self.w * 0.72 * self.w_scale)
+            block_y = rect.y + int(self.h * 0.68 * self.h_scale)
+            block_w = max(10, int(40 * self.w_scale))
+            block_h = max(10, int(140 * self.h_scale))
+            pygame.draw.rect(
+                self.screen,
+                (200, 120, 80),
+                (block_x - block_w // 2, block_y - block_h // 2, block_w, block_h),
+                border_radius=6
+            )
 
     def _draw_test_results_table(self):
         results = self.repo.get_latest_test_results(limit=8)
@@ -170,7 +183,8 @@ class Menu:
             buttons = [
                 (self.btn_default, "Default"),
                 (self.btn_funnel, "Funnel"),
-                (self.btn_dk2, "DK 2.0")
+                (self.btn_dk2, "DK 2.0"),
+                (self.btn_default_modified, "Default v2")
             ]
 
             for rect, name in buttons:
@@ -201,6 +215,9 @@ class Menu:
                         running = False
                     elif self.btn_dk2.collidepoint(mouse_pos):
                         selected_map = "dk2"
+                        running = False
+                    elif self.btn_default_modified.collidepoint(mouse_pos):
+                        selected_map = "default_modified"
                         running = False
                     elif change_btn.collidepoint(mouse_pos):
                         count = self.get_particle_count()

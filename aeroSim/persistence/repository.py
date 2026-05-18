@@ -120,6 +120,29 @@ class PersistenceRepository:
         with self.Session() as session:
             return session.query(MapModel).filter_by(name=name).all()
 
+    def duplicate_map(self, source_name: str, target_name: str):
+        with self.Session() as session:
+            existing = session.query(MapModel).filter_by(name=target_name).first()
+            if existing:
+                raise ValueError(f"Mapa '{target_name}' já existe.")
+
+            ramps = session.query(MapModel).filter_by(name=source_name).all()
+            if not ramps:
+                raise ValueError(f"Mapa de origem '{source_name}' não encontrado.")
+
+            duplicated = []
+            for ramp in ramps:
+                duplicated.append(MapModel(
+                    name=target_name,
+                    x_start=ramp.x_start,
+                    y_start=ramp.y_start,
+                    x_end=ramp.x_end,
+                    y_end=ramp.y_end
+                ))
+            session.add_all(duplicated)
+            session.commit()
+            return duplicated
+
     def get_preset(self, name="default"):
         with self.Session() as session:
             return session.query(PresetModel).filter_by(name=name).first()

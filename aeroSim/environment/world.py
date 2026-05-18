@@ -2,6 +2,7 @@ import random
 from aeroSim.entities.polygon import Polygon
 from aeroSim.entities.roof import Roof
 from aeroSim.entities.particle import Particle
+from aeroSim.entities.moving_polygon import Broom
 from aeroSim.persistence.repository import PersistenceRepository
 
 class World:
@@ -44,9 +45,31 @@ class World:
             self.obstacles.append(Roof(ramp.x_start, ramp.y_start, ramp.x_end, ramp.y_end, rotation_speed=speed))
 
         if self.map_name == "default_modified":
-            gap = screen_w * 0.25
-            self.obstacles.append(Roof(gap - 20, screen_h * 0.6 - 20, gap + 60, screen_h * 0.6 + 20, rotation_speed=2.0))
-            self.obstacles.append(Roof(screen_w - gap - 60, screen_h * 0.4 - 20, screen_w - gap + 20, screen_h * 0.4 + 20, rotation_speed=-2.0))
+            # Usar a segunda plataforma inclinada como referência para a vassoura
+            second_ramp = ramps[1]
+            ramp_left_x = second_ramp.x_end
+            ramp_left_y = second_ramp.y_end
+            ramp_right_x = second_ramp.x_start
+            ramp_right_y = second_ramp.y_start
+
+            min_x = ramp_left_x + 40
+            max_x = ramp_right_x - 20
+            broom_width = 24
+            broom_height = 150
+            broom_speed = 25.0
+
+            self.obstacles.append(Broom(
+                x1=ramp_right_x,
+                y1=ramp_right_y,
+                x2=ramp_left_x,
+                y2=ramp_left_y,
+                width=broom_width,
+                height=broom_height,
+                min_x=min_x,
+                max_x=max_x,
+                speed=broom_speed,
+                start_direction=-1
+            ))
 
         preset = self.repo.get_preset("default")
         self.spawn_interval = preset.spawn_interval if preset else 0.15
