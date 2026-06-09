@@ -74,6 +74,29 @@ class World:
                 ramp_offset_y=broom_ramp_offset_y
             ))
 
+            # Mesma vassoura na rampa de baixo
+            bottom_ramp = ramps[2]
+            bottom_left_x = bottom_ramp.x_start
+            bottom_left_y = bottom_ramp.y_start
+            bottom_right_x = bottom_ramp.x_end
+            bottom_right_y = bottom_ramp.y_end
+            bottom_min_x = bottom_left_x + 240
+            bottom_max_x = bottom_min_x + 180
+
+            self.obstacles.append(Broom(
+                x1=bottom_left_x,
+                y1=bottom_left_y,
+                x2=bottom_right_x,
+                y2=bottom_right_y,
+                width=broom_width,
+                height=broom_height,
+                min_x=bottom_min_x,
+                max_x=bottom_max_x,
+                speed=broom_speed,
+                start_direction=-1,
+                ramp_offset_y=broom_ramp_offset_y
+            ))
+
         preset = self.repo.get_preset("default")
         self.spawn_interval = preset.spawn_interval if preset else 0.15
         self.friction = preset.particle_friction if preset else 0.01
