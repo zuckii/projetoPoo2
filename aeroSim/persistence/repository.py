@@ -61,10 +61,30 @@ class PersistenceRepository:
                     MapModel(name="dk2", x_start=w*0.3, y_start=h*0.7, x_end=w*0.31, y_end=h*0.68),
                     MapModel(name="dk2", x_start=w*0.31, y_start=h*0.68, x_end=w*0.32, y_end=h*0.706),
                     MapModel(name="dk2", x_start=w*0.32, y_start=h*0.706, x_end=w-gap, y_end=h*0.85),
+                    
+                    # default_inclinado (Inclinação dobrada)
+                    MapModel(name="default_inclinado", x_start=20, y_start=h*0.05, x_end=w-gap, y_end=h*0.45),
+                    MapModel(name="default_inclinado", x_start=w-20, y_start=h*0.45, x_end=gap, y_end=h*0.85),
+
+                    # default_curva_c (Baseado no default_modified + rampas em C)
+                    # Rampa 1
+                    MapModel(name="default_curva_c", x_start=20, y_start=h*0.2, x_end=w-gap, y_end=h*0.4),
+                    # Curva C - Lado Direito
+                    MapModel(name="default_curva_c", x_start=w-gap+20, y_start=h*0.35, x_end=w-gap+60, y_end=h*0.42),
+                    MapModel(name="default_curva_c", x_start=w-gap+60, y_start=h*0.42, x_end=w-gap+20, y_end=h*0.47),
+                    MapModel(name="default_curva_c", x_start=w-gap+20, y_start=h*0.47, x_end=w-gap-20, y_end=h*0.49),
+                    # Rampa 2
+                    MapModel(name="default_curva_c", x_start=w-gap-20, y_start=h*0.49, x_end=gap, y_end=h*0.65),
+                    # Curva C - Lado Esquerdo
+                    MapModel(name="default_curva_c", x_start=gap-20, y_start=h*0.6, x_end=gap-60, y_end=h*0.67),
+                    MapModel(name="default_curva_c", x_start=gap-60, y_start=h*0.67, x_end=gap-20, y_end=h*0.72),
+                    MapModel(name="default_curva_c", x_start=gap-20, y_start=h*0.72, x_end=gap+20, y_end=h*0.74),
+                    # Rampa 3
+                    MapModel(name="default_curva_c", x_start=gap+20, y_start=h*0.74, x_end=w-gap, y_end=h*0.9),
                 ]
                 session.add_all(ramps)
             if not session.query(PresetModel).first():
-                preset = PresetModel(name="default", spawn_interval=0.05, particle_friction=0.007)
+                preset = PresetModel(name="default", spawn_interval=0.05, particle_friction=0.004)
                 session.add(preset)
             session.commit()
 
@@ -119,6 +139,11 @@ class PersistenceRepository:
     def get_maps(self, name="default"):
         with self.Session() as session:
             return session.query(MapModel).filter_by(name=name).all()
+
+    def get_map_names(self):
+        with self.Session() as session:
+            names = session.query(MapModel.name).distinct().order_by(MapModel.name).all()
+            return [name for (name,) in names]
 
     def duplicate_map(self, source_name: str, target_name: str):
         with self.Session() as session:
