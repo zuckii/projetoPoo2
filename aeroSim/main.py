@@ -1,19 +1,29 @@
 from aeroSim.simulation.simulation import Simulation
+from aeroSim.simulation.batchRunner import BatchSimulationRunner
 from aeroSim.graphics.menu import Menu
 
 def main():
     try:
         menu = Menu()
-        
-        # Primeiro, usuário escolhe número de partículas
+
+        mode = menu.show_mode()
+        if mode == "batch":
+            batch_configs = menu.show_batch()
+            if not batch_configs:
+                return
+
+            runner = BatchSimulationRunner(batch_configs)
+            results = runner.run()
+            menu.show_batch_results(results)
+            return
+
+        # Modo clássico continua com uma única execução.
         particle_count = menu.get_particle_count()
         if particle_count is None:
             return
-        
-        # Depois escolhe o mapa
+
         selected_map = menu.show()
         if selected_map:
-            # Todos os mapas executam como teste
             simulation = Simulation(map_name=selected_map, test_mode=True)
             simulation.run_test(map_name=selected_map, particle_count=particle_count)
     except Exception as e:

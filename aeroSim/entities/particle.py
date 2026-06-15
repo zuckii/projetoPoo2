@@ -30,7 +30,7 @@ class Particle:
 
     def bounce(self, normal_x: float, normal_y: float, damping: float = 0.2) -> None:
         dot = self.vx * normal_x + self.vy * normal_y
-        if dot > 0:
+        if dot >= 0:
             return
 
         vn_x = dot * normal_x
@@ -38,5 +38,16 @@ class Particle:
         vt_x = self.vx - vn_x
         vt_y = self.vy - vn_y
 
-        self.vx = (-vn_x * damping) + (vt_x * (1.0 - self.friction))
-        self.vy = (-vn_y * damping) + (vt_y * (1.0 - self.friction))
+        new_vn_x = -vn_x * damping
+        new_vn_y = -vn_y * damping
+
+        friction_scale = max(0.0, 1.0 - self.friction)
+        new_vt_x = vt_x * friction_scale
+        new_vt_y = vt_y * friction_scale
+
+        if new_vt_x * new_vt_x + new_vt_y * new_vt_y < 0.01 * 0.01:
+            new_vt_x = 0.0
+            new_vt_y = 0.0
+
+        self.vx = new_vn_x + new_vt_x
+        self.vy = new_vn_y + new_vt_y

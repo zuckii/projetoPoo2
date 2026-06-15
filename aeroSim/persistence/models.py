@@ -40,3 +40,13 @@ class TestResultModel(Base):
     particles_per_second = Column(Float)
     status = Column(String, default='Concluído')
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class SimulationResultModel(Base):
+    __tablename__ = 'simulation_results'
+    id = Column(Integer, primary_key=True)
+    execution_name = Column(String)
+    map_name = Column(String)
+    particles_count = Column(Integer)
+    total_time = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)

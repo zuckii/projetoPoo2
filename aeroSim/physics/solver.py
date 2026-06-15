@@ -5,6 +5,20 @@ from aeroSim.entities.roof import Roof
 
 class AeroSolver:
 
+    def __init__(
+        self,
+        gravity: float | None = None,
+        wind_x: float | None = None,
+        wind_y: float | None = None,
+        drag_coefficient: float | None = None,
+        bounce_damping: float | None = None,
+    ) -> None:
+        self.gravity = physConfig.GRAVITY if gravity is None else gravity
+        self.wind_x = physConfig.WIND_X if wind_x is None else wind_x
+        self.wind_y = physConfig.WIND_Y if wind_y is None else wind_y
+        self.drag_coefficient = physConfig.DRAG_COEFFICIENT if drag_coefficient is None else drag_coefficient
+        self.bounce_damping = physConfig.BOUNCE_DAMPING if bounce_damping is None else bounce_damping
+
     def step_sandbox(self, world, dt: float) -> None:
         particles = world.get_alive_particles()
         if not particles:
@@ -12,24 +26,27 @@ class AeroSolver:
 
         sub_steps = 4
         sub_dt = dt / sub_steps
+        substep_drag = math.pow(self.drag_coefficient, 1.0 / sub_steps)
 
         for _ in range(sub_steps):
             for particle in particles:
-                particle.apply_acceleration(0.0, physConfig.GRAVITY, sub_dt)
+                particle.apply_acceleration(self.wind_x, self.gravity + self.wind_y, sub_dt)
                 particle.update_position(sub_dt)
+                particle.vx *= substep_drag
+                particle.vy *= substep_drag
                 self._check_bounds(particle, world)
 
             self._check_particle_collisions(particles)
 
             for particle in particles:
-                self._check_obstacle_collisions(particle, world)
+                self._check_obstacle_collisions(particle, world, sub_dt)
 
-    def _check_obstacle_collisions(self, particle, world) -> None:
+    def _check_obstacle_collisions(self, particle, world, dt: float) -> None:
         for obs in world.obstacles:
             if isinstance(obs, Polygon):
                 self._resolve_polygon_collision(particle, obs)
             elif isinstance(obs, Roof):
-                self._resolve_roof_collision(particle, obs)
+                self._resolve_roof_collision(particle, obs, dt)
 
     def _check_particle_collisions(self, particles) -> None:
         if not particles:
@@ -89,7 +106,7 @@ class AeroSolver:
                             dvn = dvx * nx + dvy * ny
 
                             if dvn < 0:
-                                damping = physConfig.BOUNCE_DAMPING if dvn < -15.0 else 0.0
+                                damping = self.bounce_damping if dvn < -15.0 else 0.0
                                 impulse = -(1 + damping) * dvn / (1 / p1.mass + 1 / p2.mass)
                                 p1.vx -= impulse * nx / p1.mass
                                 p1.vy -= impulse * ny / p1.mass
@@ -125,7 +142,7 @@ class AeroSolver:
             particle.y += ny * overlap
             particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
 
-    def _resolve_roof_collision(self, particle, roof) -> None:
+    def _resolve_roof_collision(self, particle, roof, dt: float) -> None:
         cx, cy = roof.get_closest_point(particle.x, particle.y)
         dx = particle.x - cx
         dy = particle.y - cy
@@ -142,7 +159,15 @@ class AeroSolver:
             if overlap > 0:
                 particle.x += nx * overlap
                 particle.y += ny * overlap
-                particle.bounce(nx, ny, physConfig.BOUNCE_DAMPING if abs(particle.vy) > 15.0 else 0.0)
+                particle.bounce(nx, ny, self.bounce_damping if abs(particle.vy) > 15.0 else 0.0)
+
+                # Aplicar uma pequena aceleração tangencial ao longo da rampa
+                # para simular o componente da gravidade que puxa a partícula ladeira abaixo.
+                # Usa um fator pequeno para que o efeito seja sutil e estável.
+                slide_scale = 0.01
+                slide_acc = self.gravity * roof.dir_y * slide_scale
+                particle.vx += roof.dir_x * slide_acc * dt
+                particle.vy += roof.dir_y * slide_acc * dt
 
     def _check_bounds(self, particle, world) -> None:
         margin = 100

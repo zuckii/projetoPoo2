@@ -97,6 +97,11 @@ projetopoo2.egg-info/
   ```
 - **Padrões:** Coordinator/Orchestrator pattern
 
+#### **Batch Orchestrator: [`batchRunner.py`](aeroSim/simulation/batchRunner.py)**
+- **Classes:** `BatchExecutionConfig`, `SimulationResult`, `BatchSimulationRunner`
+- **Função:** Executa várias simulações em sequência, cada uma com seu próprio `World` e `AeroSolver`
+- **Persistência:** Salva o resumo consolidado no banco SQLite após cada execução do lote
+
 ### **3. Configuration Module (`aeroSim/config/`)**
 
 #### **Physics Settings: [`physicsConfig.py`](aeroSim/config/physicsConfig.py)**
@@ -162,7 +167,7 @@ projetopoo2.egg-info/
 ### **8. Persistence Module (`aeroSim/persistence/`)**
 
 #### **Data Models: [`models.py`](aeroSim/persistence/models.py)**
-- **Modelos:** MapModel, PresetModel
+- **Modelos:** MapModel, PresetModel, ParticleSequenceModel, TestResultModel, SimulationResultModel
 
 #### **Repository: [`repository.py`](aeroSim/persistence/repository.py)**
 - **Classe:** `PersistenceRepository`
@@ -183,6 +188,7 @@ projetopoo2.egg-info/
 - Física de gravidade e colisões
 - Múltiplos tipos de obstáculos (paredes, rampas)
 - Menu de seleção de mapas
+- Execução em lote com fila de mapas e resumo consolidado final
 - Display em tela cheia
 
 ## Instalação
@@ -212,3 +218,4 @@ Mapas armazenados em banco SQLite (`data/sim_data.db`):
 
 - ESC: Sair da simulação
 - Mouse: Selecionar mapa no menu
+- No modo batch, clique nos mapas para adicionar execuções à fila e use "Executar" para iniciar a sequência

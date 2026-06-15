@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from aeroSim.persistence.models import (
     Base, MapModel, PresetModel, ParticleSequenceModel,
-    TestResultModel
+    TestResultModel, SimulationResultModel
 )
 
 class PersistenceRepository:
@@ -23,6 +23,7 @@ class PersistenceRepository:
         self._migrate_particle_sequence_seed()
         self._migrate_test_result_status()
         self._migrate_preset_friction()
+        self._migrate_simulation_results()
         self._init_defaults()
 
     def _init_defaults(self):
@@ -83,9 +84,25 @@ class PersistenceRepository:
                     MapModel(name="default_curva_c", x_start=gap+20, y_start=h*0.74, x_end=w-gap, y_end=h*0.9),
                 ]
                 session.add_all(ramps)
-            if not session.query(PresetModel).first():
-                preset = PresetModel(name="default", spawn_interval=0.05, particle_friction=0.004)
+            default_spawn_interval = 0.05
+            default_particle_friction = 0.0001
+
+            existing_preset = session.query(PresetModel).filter_by(name="default").first()
+            if not existing_preset:
+                preset = PresetModel(
+                    name="default",
+                    spawn_interval=default_spawn_interval,
+                    particle_friction=default_particle_friction
+                )
                 session.add(preset)
+            else:
+                # Restaura presets antigos criados com o valor incorreto de 0.001.
+                if existing_preset.spawn_interval is None:
+                    existing_preset.spawn_interval = default_spawn_interval
+                if existing_preset.particle_friction is None \
+                        or existing_preset.particle_friction == 0.001 \
+                        or existing_preset.particle_friction < 1e-5:
+                    existing_preset.particle_friction = default_particle_friction
             session.commit()
 
     def _migrate_particle_sequence_seed(self):
@@ -98,6 +115,7 @@ class PersistenceRepository:
             return
 
         seed_map = {
+            500: 111111,
             1000: 123456,
             1500: 234567,
             2000: 345678,
@@ -135,6 +153,25 @@ class PersistenceRepository:
 
         with self.engine.begin() as conn:
             conn.execute(text('ALTER TABLE presets ADD COLUMN particle_friction FLOAT DEFAULT 0.01'))
+
+    def _migrate_simulation_results(self):
+        inspector = inspect(self.engine)
+        if 'simulation_results' not in inspector.get_table_names():
+            return
+
+        columns = [column['name'] for column in inspector.get_columns('simulation_results')]
+        if {'execution_name', 'map_name', 'particles_count', 'total_time'}.issubset(columns):
+            return
+
+        with self.engine.begin() as conn:
+            if 'execution_name' not in columns:
+                conn.execute(text('ALTER TABLE simulation_results ADD COLUMN execution_name VARCHAR'))
+            if 'map_name' not in columns:
+                conn.execute(text('ALTER TABLE simulation_results ADD COLUMN map_name VARCHAR'))
+            if 'particles_count' not in columns:
+                conn.execute(text('ALTER TABLE simulation_results ADD COLUMN particles_count INTEGER'))
+            if 'total_time' not in columns:
+                conn.execute(text('ALTER TABLE simulation_results ADD COLUMN total_time FLOAT'))
 
     def get_maps(self, name="default"):
         with self.Session() as session:
@@ -195,6 +232,7 @@ class PersistenceRepository:
                 return existing
 
             seed_map = {
+                500: 111111,
                 1000: 123456,
                 1500: 234567,
                 2000: 345678,
@@ -204,7 +242,7 @@ class PersistenceRepository:
             if seed is None:
                 raise ValueError(
                     f"Quantidade de partículas inválida: {particle_count}. "
-                    f"Use apenas [1000, 1500, 2000, 2500]."
+                    f"Use apenas [500, 1000, 1500, 2000, 2500]."
                 )
 
             seq = ParticleSequenceModel(
@@ -258,5 +296,26 @@ class PersistenceRepository:
         with self.Session() as session:
             results = session.query(TestResultModel).order_by(
                 TestResultModel.created_at.desc()
+            ).limit(limit).all()
+            return results
+
+    def save_simulation_result(self, execution_name: str, map_name: str, particles_count: int, total_time: float):
+        """Salva o resultado consolidado de uma execução em lote."""
+        with self.Session() as session:
+            result = SimulationResultModel(
+                execution_name=execution_name,
+                map_name=map_name,
+                particles_count=particles_count,
+                total_time=total_time,
+            )
+            session.add(result)
+            session.commit()
+            return result
+
+    def get_latest_simulation_results(self, limit: int = 5):
+        """Recupera os resultados consolidados mais recentes."""
+        with self.Session() as session:
+            results = session.query(SimulationResultModel).order_by(
+                SimulationResultModel.created_at.desc()
             ).limit(limit).all()
             return results
