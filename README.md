@@ -246,3 +246,7 @@ Mapas armazenados em banco SQLite (`data/sim_data.db`):
 - ESC: Sair da simulação
 - Mouse: Selecionar mapa no menu
 - No modo batch, clique nos mapas para adicionar execuções à fila e use "Executar" para iniciar a sequência
+
+
+## Link do video no Youtube
+[Link para o video do projeto](https://youtu.be/fLx-TRsdrmc)
