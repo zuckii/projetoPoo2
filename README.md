@@ -17,6 +17,12 @@ AeroSim é um simulador de física de partículas 2D construído com Pygame e SQ
 - **Padrões de Projeto:** Strategy (colisões polimórficas), Repository (abstração de dados), Coordinator (orquestração), Façade (inicialização), Observer (atualizações baseadas em tempo)
 - **Frameworks:** Uso de Pygame como framework de jogos e SQLAlchemy como ORM
 
+## Diagrama de Classes
+
+Abaixo está a imagem do diagrama de classes do AeroSim. O arquivo de imagem usado está em `docs/Screenshot 2026-07-07 201539.png`.
+
+![Diagrama de Classes](docs/Screenshot%202026-07-07%20201539.png)
+
 ## Estrutura do Projeto
 
 ```
@@ -193,9 +199,30 @@ projetopoo2.egg-info/
 
 ## Instalação
 
-1. Instalar Python 3.12+
-2. Instalar dependências: `pip install pygame sqlalchemy`
-3. Executar: `python -m aeroSim.main`
+1. Instale Python 3.12 ou superior.
+2. Crie e ative um ambiente virtual (recomendado):
+   - No Windows PowerShell:
+     ```powershell
+     python -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+3. Instale as dependências do projeto:
+   ```powershell
+   python -m pip install -U pip
+   python -m pip install pygame sqlalchemy
+   ```
+4. Execute o simulador a partir da raiz do projeto:
+   ```powershell
+   python -m aeroSim.main
+   ```
+
+## Como rodar o projeto
+
+1. Abra o terminal na pasta do projeto (`c:\Users\zuchi\projetos\projetoPoo2`).
+2. Ative o ambiente virtual, se estiver usando `.venv`.
+3. Instale as dependências, caso ainda não tenha feito.
+4. Rode o comando `python -m aeroSim.main`.
+5. Siga o menu interativo para escolher o modo de simulação e o mapa.
 
 ## Configuração
 
